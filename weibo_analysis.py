@@ -12,7 +12,7 @@ OUTPUT_DIR.mkdir(exist_ok=True)
 
 csv_path = DATA_DIR / "raw_weibo.csv"
 
-df = pd.read_csv(csv_path)
+df = pd.read_csv(csv_path, dtype={"mid": str})
 
 print("数据基本信息：")
 print(df.info())
@@ -55,7 +55,8 @@ df = df.drop_duplicates()
 
 df["username"] = df["username"].fillna("未知用户")
 df["content"] = df["content"].fillna("")
-df["source"] = df["source"].fillna("未知来源")
+df["source"] = df["source"].astype(str).str.strip()
+df["source"] = df["source"].replace(["", "nan", "None"], "未知来源")
 df["source_category"] = df["source"].apply(classify_source)
 
 number_cols = ["repost_count", "comment_count", "like_count"]
@@ -73,6 +74,12 @@ df["hot_score"] = (
     df["comment_count"] * 2 +
     df["repost_count"] * 3
 )
+
+cleaned_csv_path = DATA_DIR / "cleaned_weibo.csv"
+
+df.to_csv(cleaned_csv_path, index=False, encoding="utf-8-sig")
+
+print(f"\n清洗后的数据已保存：{cleaned_csv_path}")
 
 
 # =========================
